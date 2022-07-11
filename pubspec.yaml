@@ -1,0 +1,32 @@
+name: chatapp_firebase
+version: 1.0.0+1
+publish_to: none
+description: A new Flutter project.
+environment: 
+  sdk: '>=2.17.5 <3.0.0'
+
+dependencies: 
+  cupertino_icons: ^1.0.2
+  firebase_auth: ^3.3.20
+  cloud_firestore: ^3.1.18
+  firebase_core: ^1.18.0
+  firebase_database: ^9.0.17
+  google_sign_in: ^5.3.3
+  connectivity_plus: ^2.3.5
+  get: 4.6.5
+  flutter: 
+    sdk: flutter
+
+dev_dependencies: 
+  flutter_lints: 2.0.1
+  flutter_test: 
+    sdk: flutter
+
+flutter: 
+  uses-material-design: true
+
+  assets:
+   - assets/black_blue_BG.jpg
+   - assets/google.png
+   - assets/HomeBg.jpg
+
