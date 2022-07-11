@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:chatapp_firebase/app/data/db_functions/db_functions.dart';
+import 'package:chatapp_firebase/app/data/model/user_model_class.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -23,16 +25,29 @@ class AuthenticationController extends GetxController {
 
   // void increment() => count.value++;
 
+  bool isSignin = true;
+
+  toggleScreens() {
+    isSignin = !isSignin;
+    update();
+  }
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Future signUpwithEmailandPassword(
-      {required String email, required String password}) async {
+      {required String email, required String password,required String name}) async {
     try {
-      await _auth.createUserWithEmailAndPassword(
+       UserCredential results = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
+          User? user =results.user;
+      await FirebaseDB().createUsers(UserModelData(
+        email: email,
+        name: name,
+        uid:user!.uid.toString(),
+      ));
     } on FirebaseException catch (e) {
-      print(e.message);
+      log("${e.message}On Signup with EMAIL & PASSWORD");
     }
   }
 
@@ -40,12 +55,11 @@ class AuthenticationController extends GetxController {
       {required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      log("Logged IN");
+      log("Logged in with EMAIL & PASSWORD");
     } on FirebaseException catch (e) {
-      print(e.message);
       log(e.message.toString());
-      }catch(e){
-        log("Some other Excptions");
+    } catch (e) {
+      log("Some other Excptions in sign in with EMAIL & PASSWORD");
     }
   }
 
@@ -58,10 +72,15 @@ class AuthenticationController extends GetxController {
         accessToken: googleSignInAuthentication.accessToken,
         idToken: googleSignInAuthentication.idToken,
       );
-      await _auth.signInWithCredential(credential);
-      log("Successfully Logged in");
+      UserCredential results= await _auth.signInWithCredential(credential);
+      await FirebaseDB().createUsers(UserModelData(
+        email: googleUser.email,
+        name: googleUser.displayName.toString(),
+        uid:results.user!.uid,
+      ));
+      log("Successfully Logged in with GOOGLE");
     } catch (e) {
-      log(e.toString());
+      log("$e Sign with google errooooooooor");
     }
   }
 }
