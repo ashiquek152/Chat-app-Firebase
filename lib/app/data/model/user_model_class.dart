@@ -13,5 +13,6 @@ class UserModelData {
   Map<String, dynamic> toJson() => {
         "email": email,
         "name": name,
+        "uid":uid
       };
 }

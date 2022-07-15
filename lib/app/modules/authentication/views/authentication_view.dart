@@ -12,13 +12,15 @@ class AuthenticationView extends GetView<AuthenticationController> {
   final authController = Get.put(AuthenticationController());
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: GetBuilder<AuthenticationController>(
-      builder: (controller) {
-        if (authController.isSignin) {
-          return LoginScreen();
-        }
-        return SignUpScreen();
-      },
-    ));
+    return Scaffold(
+      body: GetBuilder<AuthenticationController>(
+        builder: (controller) {
+          if (authController.isSignin) {
+            return LoginScreen();
+          }
+          return SignUpScreen();
+        },
+      ),
+    );
   }
 }

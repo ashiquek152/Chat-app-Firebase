@@ -7,6 +7,7 @@ class TextCustomized extends StatelessWidget {
       required this.text,
       required this.textSize,
       required this.textColor,
+      this.fontStyle =FontStyle.normal,
        this.fontWeight =FontWeight.normal})
       : super(key: key);
 
@@ -14,6 +15,7 @@ class TextCustomized extends StatelessWidget {
   final double textSize;
   final Color textColor;
   FontWeight fontWeight;
+  FontStyle fontStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,8 @@ class TextCustomized extends StatelessWidget {
       style:  TextStyle(
         color: textColor,
         fontSize: textSize,
-        fontWeight: fontWeight
+        fontWeight: fontWeight,
+        fontStyle: fontStyle,
       ),
     );
   }

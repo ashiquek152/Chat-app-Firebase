@@ -101,22 +101,11 @@ class LoginScreen extends StatelessWidget {
                     ],
                   ),
                   RichText(
-                    // Controls visual overflow
                     overflow: TextOverflow.clip,
-
-                    // Controls how the text should be aligned horizontally
                     textAlign: TextAlign.end,
-
-                    // Control the text direction
                     textDirection: TextDirection.rtl,
-
-                    // Whether the text should break at soft line breaks
                     softWrap: true,
-
-                    // Maximum number of lines for the text to span
                     maxLines: 1,
-
-                    // The number of font pixels for each logical pixel
                     textScaleFactor: 1.2,
                     text: TextSpan(
                       text: "Not registered yet ? ",
@@ -126,7 +115,6 @@ class LoginScreen extends StatelessWidget {
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
                               authController.toggleScreens();
-                                  
                             },
                           text: 'Click Here',
                           style: TextStyle(

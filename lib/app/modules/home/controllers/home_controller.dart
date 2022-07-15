@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class HomeController extends GetxController {
@@ -19,6 +20,9 @@ class HomeController extends GetxController {
   // }
 
   // void increment() => count.value++;
-
+  final currentUser =FirebaseAuth.instance.currentUser;
+   RxString photoUrl = FirebaseAuth.instance.currentUser!.photoURL .toString().obs;
+   RxString dispalyName = FirebaseAuth.instance.currentUser!.displayName.toString().obs;
+   
   
 }

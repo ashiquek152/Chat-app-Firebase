@@ -22,7 +22,7 @@ class WrapperView extends GetView<WrapperController> {
             } else if (snapshot.hasError) {
               return const Center(child: Text("Something went wrong"));
             } else if (snapshot.hasData) {
-              return   const HomeView();
+              return    HomeView();
             } else {
               return AuthenticationView();
             }

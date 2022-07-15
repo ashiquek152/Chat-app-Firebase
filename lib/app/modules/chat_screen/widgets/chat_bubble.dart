@@ -1,15 +1,18 @@
 
 import 'package:chat_bubbles/bubbles/bubble_special_three.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/colors.dart';
+import 'package:chatapp_firebase/app/modules/chat_screen/controllers/chat_screen_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({
-    Key? key,
-    required this.chatFieldController,
+   ChatBubble({
+    Key? key,required this.message,
   }) : super(key: key);
 
-  final TextEditingController chatFieldController;
+  // final TextEditingController chatFieldController;
+  final String message;
+  final chatScreenController =Get.put(ChatScreenController());
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +21,7 @@ class ChatBubble extends StatelessWidget {
       sent: true,
       delivered: true,
       tail: true,
-      text: chatFieldController.text,
+      text: message,
       isSender: true,
       color: black.withOpacity(0.5),
       textStyle:  TextStyle(
