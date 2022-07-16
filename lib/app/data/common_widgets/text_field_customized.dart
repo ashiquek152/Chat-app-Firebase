@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 class TextFormFieldCustom extends StatelessWidget {
-  TextFormFieldCustom({
+   TextFormFieldCustom({
     Key? key,
     required this.fieldController,
     required this.hintTex,
-    required this.maxLength,
+     this.maxLength =100,
     this.keyboardType = TextInputType.name,
   }) : super(key: key);
 
   final TextEditingController fieldController;
   final String hintTex;
-  final int maxLength;
+   int maxLength;
   final TextInputType keyboardType;
-  String value ="";
+  final String value ="";
 
   @override
   Widget build(BuildContext context) {

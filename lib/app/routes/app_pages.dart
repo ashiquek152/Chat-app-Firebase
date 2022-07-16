@@ -6,8 +6,6 @@ import '../modules/chat_screen/bindings/chat_screen_binding.dart';
 import '../modules/chat_screen/views/chat_screen_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
-import '../modules/search_screen/bindings/search_screen_binding.dart';
-import '../modules/search_screen/views/search_screen_view.dart';
 import '../modules/wrapper/bindings/wrapper_binding.dart';
 import '../modules/wrapper/views/wrapper_view.dart';
 
@@ -35,13 +33,8 @@ class AppPages {
       binding: WrapperBinding(),
     ),
     GetPage(
-      name: _Paths.SEARCH_SCREEN,
-      page: () => SearchScreenView(),
-      binding: SearchScreenBinding(),
-    ),
-    GetPage(
       name: _Paths.CHAT_SCREEN,
-      page: () =>  ChatScreenView(),
+      page: () =>   ChatScreenView(),
       binding: ChatScreenBinding(),
     ),
   ];

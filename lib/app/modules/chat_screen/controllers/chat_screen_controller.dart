@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
@@ -36,23 +35,7 @@ class ChatScreenController extends GetxController {
     update();
   }
 
-  final List messages = [];
-  getMessages(chatRoomid) async {
-    // messages.clear();
-   return await FirebaseFirestore.instance
-        .collection("ChatRoom")
-        .doc(chatRoomid)
-        .collection("chats")
-        .where("messege")
-        .get()
-        .then((value) {
-      value.docs.map((DocumentSnapshot document) {
-        Map a = document.data() as Map<String, dynamic>;
-        messages.add(a);
-      }).toList();
-    update();
-    });
-  }
+  
 }
 
 

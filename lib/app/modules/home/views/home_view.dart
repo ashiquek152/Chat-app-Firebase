@@ -2,8 +2,9 @@ import 'package:chatapp_firebase/app/data/common_widgets/colors.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/constants.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/text_widget_customized.dart';
 import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
-import 'package:chatapp_firebase/app/modules/search_screen/views/search_screen_view.dart';
+import 'package:chatapp_firebase/app/modules/home/views/search_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -20,7 +21,7 @@ class HomeView extends GetView<HomeController> {
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
-          fit: BoxFit.fill,
+          fit: BoxFit.cover,
           // opacity: 180,
           image: AssetImage(
             "assets/HomeBg.jpg",
@@ -31,15 +32,6 @@ class HomeView extends GetView<HomeController> {
         appBar: AppBar(
           backgroundColor: transparent,
           elevation: 0,
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Get.to(
-                    SearchScreenView(),
-                  );
-                },
-                icon: const Icon(Icons.search))
-          ],
         ),
         drawer: Drawer(
           elevation: 0.0,
@@ -111,18 +103,32 @@ class HomeView extends GetView<HomeController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ListView.separated(
-                  separatorBuilder: (context, index) {
-                    return sizedBox10;
-                  },
-                  shrinkWrap: true,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return const ListTile(
-                      tileColor: black45,
-                    );
-                  },
-                ),
+                CupertinoSearchTextField(
+                      controller: homeController.searchController,
+                      backgroundColor: white,
+                      onChanged: (value) async {
+                        await homeController .getSearchResults();
+                      },
+                    ), sizedBox10,
+                    GetBuilder<HomeController>(
+                      builder: (controller) {
+                        return Visibility(
+                            visible: homeController.visibilty,
+                            child: SearchList());
+                      },
+                    ),
+                // ListView.separated(
+                //   separatorBuilder: (context, index) {
+                //     return sizedBox10;
+                //   },
+                //   shrinkWrap: true,
+                //   itemCount: 5,
+                //   itemBuilder: (context, index) {
+                //     return const ListTile(
+                //       tileColor: black45,
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),

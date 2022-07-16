@@ -7,30 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ChatScreenView extends StatefulWidget {
-  const ChatScreenView({Key? key, this.chatRoomId, this.userName})
-      : super(key: key);
+class ChatScreenView extends GetView<ChatScreenController> {
+  ChatScreenView({Key? key}) : super(key: key);
 
-  final String? chatRoomId;
-  final String? userName;
-
-  @override
-  State<ChatScreenView> createState() => _ChatScreenViewState();
-}
-
-class _ChatScreenViewState extends State<ChatScreenView> {
-  final chatFieldController = TextEditingController();
-  ChatScreenController chatScreenController = Get.put(ChatScreenController());
-
-  @override
-  void initState() {
-    callMessages();
-    super.initState();
-  }
-
-  callMessages() async {
-    await chatScreenController.getMessages(widget.chatRoomId);
-  }
+  final currentUser = FirebaseAuth.instance.currentUser;
+  final FirebaseDB _firebaseDB = Get.put(FirebaseDB());
+  final chatRooomID = Get.arguments;
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +28,14 @@ class _ChatScreenViewState extends State<ChatScreenView> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.userName.toString()),
+          // title: Text(userName.toString()),
           centerTitle: true,
           backgroundColor: transparent,
           elevation: 0.0,
           leading: IconButton(
               onPressed: () {
                 Get.to(() => HomeView());
-                chatScreenController.messages.clear();
+                _firebaseDB.messages.clear();
               },
               icon: const Icon(
                 Icons.close,
@@ -64,22 +46,21 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         body: Container(
           child: Stack(
             children: [
-              GetBuilder<ChatScreenController>(builder: (_) {
+              GetBuilder<FirebaseDB>(builder: (_) {
                 return ListView.separated(
-                  itemCount: chatScreenController.messages.length,
+                  itemCount: _firebaseDB.messages.length,
                   separatorBuilder: (BuildContext context, int index) {
                     return const SizedBox(height: 10);
                   },
                   itemBuilder: (BuildContext context, int index) {
-                    final data = chatScreenController.messages;
+                    final data = _firebaseDB.messages;
                     return BubbleNormal(
                       text: data[index]["messege"].toString(),
-                      isSender: chatScreenController.messages[index]
-                                  ["sendBy"] ==
-                              chatScreenController.currentUser!.displayName
+                      isSender: _firebaseDB.messages[index]["sendBy"] ==
+                              currentUser!.displayName
                           ? true
                           : false,
-                      // text: chatScreenController.messages[index]['message']
+                      // text: _firebaseDB.messages[index]['message']
                     );
                   },
                 );
@@ -95,7 +76,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                     children: [
                       Expanded(
                           child: TextField(
-                        controller: chatFieldController,
+                        controller: _firebaseDB.chatFieldController,
                         decoration: const InputDecoration(
                             hintText: "Message ...",
                             hintStyle: TextStyle(
@@ -109,9 +90,11 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await sendMessages();
-                          chatScreenController.messages.clear();
-                          chatScreenController.getMessages(widget.chatRoomId);
+                          await _firebaseDB.sendMessages(
+                              chatRoomID: chatRooomID,
+                              currentUserName: currentUser!.displayName!);
+                          _firebaseDB.messages.clear();
+                          _firebaseDB.getMessages(chatRooomID);
                         },
                         child: Container(
                             height: 40,
@@ -137,17 +120,5 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         ),
       ),
     );
-  }
-
-  sendMessages() async {
-    final currentUserName = FirebaseAuth.instance.currentUser!.displayName;
-    if (chatFieldController.text.isNotEmpty) {
-      Map<String, String> messagesMap = {
-        "messege": chatFieldController.text,
-        "sendBy": currentUserName.toString(),
-      };
-      await FirebaseDB().addMessages(widget.chatRoomId, messagesMap);
-      chatFieldController.clear();
-    }
   }
 }
