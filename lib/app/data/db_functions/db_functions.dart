@@ -39,28 +39,6 @@ class FirebaseDB extends GetxController {
         .catchError((e) => log("Creating Chatroom Error ${e.toString()}"));
   }
 
-  // QuerySnapshot? data;
-  // getEmailMatchingData(email) async {
-  //   try {
-  //     await firestoreCollectonUsers
-  //         .where("email", isEqualTo: email)
-  //         .get()
-  //         .then((value) {
-  //       final List usersData = [];
-  //       value.docs.map((DocumentSnapshot document) {
-  //         Map a = document.data() as Map<String, dynamic>;
-  //         usersData.add(a);
-  //       }).toList();
-  //       // AuthenticationController().nameInStorage.value = usersData[0]["name"];
-  //     });
-  //   } on FirebaseException catch (e) {
-  //     Get.snackbar(e.message.toString(), "");
-  //   } catch (e) {
-  //     log("$e  Error Occcuredddddddddddd$e");
-  //   }
-  //   // return nameInStorage;
-  // }
-
   createChatConversations(
       {required String userName, required String currentUserName}) async {
     await checkExistingChatroomId(
@@ -75,6 +53,8 @@ class FirebaseDB extends GetxController {
     _homeController.searchController.text = "";
 
     Get.to(
+      curve: Curves.ease,
+      duration: const Duration(seconds: 1),
       () => ChatScreenView(userName: userName),
       arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
     );
@@ -106,7 +86,6 @@ class FirebaseDB extends GetxController {
         .catchError((e) {
       log("Add Messages Error  ${e.toString()}");
     });
-    // GetStorageFunctions().setSignedUser(chatRoomid, time.toString());
   }
 
   checkExistingChatroomId(
@@ -130,14 +109,15 @@ class FirebaseDB extends GetxController {
   }
 
   final List messages = [];
-  getMessages() async {
-    await firestoreCollectonChatRoom
+  getMessages() {
+    firestoreCollectonChatRoom
         .doc(existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId)
         .collection("chats")
         .where("messege")
-        .get()
-        .then((value) {
-      value.docs.map((DocumentSnapshot document) {
+        .snapshots()
+        .forEach((element) {
+      messages.clear();
+      element.docs.map((DocumentSnapshot document) {
         Map a = document.data() as Map<String, dynamic>;
         messages.add(a);
       }).toList();
@@ -152,8 +132,7 @@ class FirebaseDB extends GetxController {
         "messege": chatFieldController.text,
         "sendBy": currentUserName.toString(),
       };
-      await addMessages(
-          existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomID,
+      addMessages(existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomID,
           messagesMap);
       chatFieldController.clear();
     }
@@ -170,7 +149,6 @@ class FirebaseDB extends GetxController {
         Map a = document.data() as Map<String, dynamic>;
         users.add(a);
       }).toList();
-      log(users[0]["users"][0].toString());
       update();
     });
   }

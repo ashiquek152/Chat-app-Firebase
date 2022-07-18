@@ -25,7 +25,7 @@ class AuthenticationController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseDB _firebaseDB = FirebaseDB();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // RxString nameInStorage = "".obs;
+  User? currentUser = FirebaseAuth.instance.currentUser;
 
   toggleScreens() {
     isSignin = !isSignin;
@@ -35,6 +35,7 @@ class AuthenticationController extends GetxController {
   }
 
   Future updateDisplayProfile(name) async {
+      Get.dialog(const LoadingWidget());
     try {
       await _auth.currentUser!.updateDisplayName(name);
       log("Display name updated");
@@ -53,13 +54,14 @@ class AuthenticationController extends GetxController {
           email: signUpEmailController.text.trim(),
           password: signUppasswordController.text.trim(),
         );
-        User? user = results.user;
+        User user = results.user!;
         await _firebaseDB.createUsers(UserModelData(
           email: signUpEmailController.text.trim(),
           name: signUpUsernameController.text.trim(),
-          uid: user!.uid.toString(),
+          uid: user.uid.toString(),
         ));
         await updateDisplayProfile(signUpUsernameController.text.trim());
+        
         Get.back();
         welcomeSnackBar(signUpUsernameController.text.trim());
         clearSignUpFields();

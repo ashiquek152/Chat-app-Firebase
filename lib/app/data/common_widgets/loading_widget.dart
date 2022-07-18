@@ -9,6 +9,7 @@ class LoadingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child:SpinKitPouringHourGlassRefined(
+        duration: Duration(seconds: 3),
                 color: white,
                 size: 50,
               ), 
