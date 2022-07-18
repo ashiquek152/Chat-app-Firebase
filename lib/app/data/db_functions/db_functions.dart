@@ -1,8 +1,8 @@
 import 'dart:developer';
 
 import 'package:chatapp_firebase/app/data/model/user_model_class.dart';
-import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
 import 'package:chatapp_firebase/app/modules/chat_screen/views/chat_screen_view.dart';
+import 'package:chatapp_firebase/app/modules/home/controllers/home_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,12 +10,14 @@ import 'package:get/get.dart';
 class FirebaseDB extends GetxController {
   final fireStoreInstance = FirebaseFirestore.instance;
   final chatFieldController = TextEditingController();
+  final _homeController = Get.put(HomeController());
 
   final CollectionReference firestoreCollectonUsers =
       FirebaseFirestore.instance.collection("users");
   final CollectionReference firestoreCollectonChatRoom =
       FirebaseFirestore.instance.collection("ChatRoom");
   String? existingChatRoom;
+  String chatRoomId = "";
 
   createUsers(UserModelData userModelData) async {
     try {
@@ -37,32 +39,30 @@ class FirebaseDB extends GetxController {
         .catchError((e) => log("Creating Chatroom Error ${e.toString()}"));
   }
 
-  QuerySnapshot? data;
-  getEmailMatchingData(email) async {
-    try {
-      await firestoreCollectonUsers
-          .where("email", isEqualTo: email)
-          .get()
-          .then((value) {
-        final List usersData = [];
-        value.docs.map((DocumentSnapshot document) {
-          Map a = document.data() as Map<String, dynamic>;
-          usersData.add(a);
-        }).toList();
-        AuthenticationController().nameInStorage.value = usersData[0]["name"];
-      });
-    } on FirebaseException catch (e) {
-      Get.snackbar(e.message.toString(), "");
-    } catch (e) {
-      log("$e  Error Occcuredddddddddddd$e");
-    }
-    // return nameInStorage;
-  }
+  // QuerySnapshot? data;
+  // getEmailMatchingData(email) async {
+  //   try {
+  //     await firestoreCollectonUsers
+  //         .where("email", isEqualTo: email)
+  //         .get()
+  //         .then((value) {
+  //       final List usersData = [];
+  //       value.docs.map((DocumentSnapshot document) {
+  //         Map a = document.data() as Map<String, dynamic>;
+  //         usersData.add(a);
+  //       }).toList();
+  //       // AuthenticationController().nameInStorage.value = usersData[0]["name"];
+  //     });
+  //   } on FirebaseException catch (e) {
+  //     Get.snackbar(e.message.toString(), "");
+  //   } catch (e) {
+  //     log("$e  Error Occcuredddddddddddd$e");
+  //   }
+  //   // return nameInStorage;
+  // }
 
   createChatConversations(
       {required String userName, required String currentUserName}) async {
-    String chatRoomId = "";
-
     await checkExistingChatroomId(
         currentUserName: currentUserName, userName: userName);
     if (existingChatRoom!.isEmpty) {
@@ -71,11 +71,11 @@ class FirebaseDB extends GetxController {
       Map<String, dynamic> chatRoomMap = {"users": users, "roomId": chatRoomId};
       await createChatRoom(chatRoomId, chatRoomMap);
     }
-    await getMessages(
-        existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId);
+    await getMessages();
+    _homeController.searchController.text = "";
 
     Get.to(
-      () => ChatScreenView(),
+      () => ChatScreenView(userName: userName),
       arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
     );
   }
@@ -114,8 +114,6 @@ class FirebaseDB extends GetxController {
     existingChatRoom = "";
     final roomId1 = createChatRoomId(currentUserName, userName);
     final roomId2 = createChatRoomId2(userName, currentUserName);
-    log(roomId1.toString());
-    log(roomId2.toString());
 
     final search = await firestoreCollectonChatRoom.doc(roomId1).get();
 
@@ -132,9 +130,9 @@ class FirebaseDB extends GetxController {
   }
 
   final List messages = [];
-  getMessages(chatRoomid) async {
-    return await firestoreCollectonChatRoom
-        .doc(chatRoomid)
+  getMessages() async {
+    await firestoreCollectonChatRoom
+        .doc(existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId)
         .collection("chats")
         .where("messege")
         .get()
@@ -159,5 +157,21 @@ class FirebaseDB extends GetxController {
           messagesMap);
       chatFieldController.clear();
     }
+  }
+
+  List users = [];
+  getChatRooms({required String currentUserName}) async {
+    users.clear();
+    await firestoreCollectonChatRoom
+        .where("users", arrayContains: currentUserName)
+        .get()
+        .then((value) {
+      value.docs.map((DocumentSnapshot document) {
+        Map a = document.data() as Map<String, dynamic>;
+        users.add(a);
+      }).toList();
+      log(users[0]["users"][0].toString());
+      update();
+    });
   }
 }

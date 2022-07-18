@@ -9,12 +9,7 @@ import 'package:get/get.dart';
 class SignUpScreen extends StatelessWidget {
   SignUpScreen({Key? key}) : super(key: key);
 
-  final usernameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final passConfirmController = TextEditingController();
   final authController = Get.put(AuthenticationController());
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +18,7 @@ class SignUpScreen extends StatelessWidget {
         image: DecorationImage(
           fit: BoxFit.fill,
           image: AssetImage(
-            "assets/black_blue_BG.jpg",
+            "assets/new_bg.jpg",
           ),
         ),
       ),
@@ -34,46 +29,46 @@ class SignUpScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
-              key: _formKey,
+              key: authController.signUpformKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextFormFieldCustom(
-                      fieldController: usernameController,
-                      hintTex: "Username",
-                      maxLength: 10),
+                      fieldController: authController.signUpUsernameController,
+                      hintText: "Username",
+                      maxLength: 30,
+                      screenName: 'Signup'),
                   sizedBox10,
                   TextFormFieldCustom(
-                      fieldController: emailController,
-                      hintTex: "Email",
-                      maxLength: 25),
+                      fieldController: authController.signUpEmailController,
+                      hintText: "Email",
+                      maxLength: 50,
+                      screenName: 'Signup'),
                   sizedBox10,
                   TextFormFieldCustom(
-                    fieldController: passwordController,
-                    hintTex: "Password",
-                    maxLength: 15,
+                    fieldController: authController.signUppasswordController,
+                    hintText: "Password",
+                    maxLength: 12,
+                    screenName: 'Signup',
                   ),
                   sizedBox10,
                   TextFormFieldCustom(
-                    fieldController: passConfirmController,
-                    hintTex: "Confirm password",
-                    maxLength: 15,
-                  ),
+                      fieldController: authController.passConfirmController,
+                      hintText: "Confirm password",
+                      maxLength: 12,
+                      screenName: 'Signup'),
                   sizedBox10,
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(primary: buttonColor),
                         onPressed: () {
-                          authController.signUpwithEmailandPassword(
-                            name: usernameController.text.trim(),
-                              email: emailController.text.trim(),
-                              password: passwordController.text.trim());
+                          authController.signUpwithEmailandPassword();
                         },
                         icon: const Icon(Icons.login),
                         label: const Text("Register")),
                   ),
-                  sizedBox10,
+                  sizedBox20,
                   RichText(
                     overflow: TextOverflow.clip,
                     textAlign: TextAlign.end,

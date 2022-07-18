@@ -1,80 +1,105 @@
 import 'dart:developer';
 
+import 'package:chatapp_firebase/app/data/common_widgets/loading_widget.dart';
+import 'package:chatapp_firebase/app/data/common_widgets/snackbars.dart';
 import 'package:chatapp_firebase/app/data/db_functions/db_functions.dart';
-import 'package:chatapp_firebase/app/data/get_storage/storage_functions.dart';
 import 'package:chatapp_firebase/app/data/model/user_model_class.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthenticationController extends GetxController {
   bool isSignin = true;
 
+  final signUpUsernameController = TextEditingController();
+  final signUpEmailController = TextEditingController();
+  final signUppasswordController = TextEditingController();
+  final passConfirmController = TextEditingController();
+  final signUpformKey = GlobalKey<FormState>();
+
+  final signInEmailController = TextEditingController();
+  final signInPasswordController = TextEditingController();
+  final signInFormKey = GlobalKey<FormState>();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseDB _firebaseDB = FirebaseDB();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // RxString nameInStorage = "".obs;
+
   toggleScreens() {
     isSignin = !isSignin;
+    clearSignInFields();
+    clearSignUpFields();
     update();
   }
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final firebaseDB = FirebaseDB();
- RxString nameInStorage="".obs;
-
-
-  Future updateDisplayProfile(name)async{
-  try {
-      await _auth.currentUser!.updateDisplayName(name);
-    log("Display name updated");
-
-  } catch (e) {
-    log(e.toString());
-    
-  }
-    // await _auth.currentUser!.updatePhotoURL(name);
-
-  }
-
-  Future signUpwithEmailandPassword(
-      {required String email,
-      required String password,
-      required String name}) async {
+  Future updateDisplayProfile(name) async {
     try {
-      UserCredential results = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      User? user = results.user;
-      await FirebaseDB().createUsers(UserModelData(
-        email: email,
-        name: name,
-        uid: user!.uid.toString(),
-      ));
-      await updateDisplayProfile(name);
-      await GetStorageFunctions().setSignedUser("name", name);
-    } on FirebaseException catch (e) {
-      log("${e.message}On Signup with EMAIL & PASSWORD");
+      await _auth.currentUser!.updateDisplayName(name);
+      log("Display name updated");
+    } catch (e) {
+      errorSnackBar("Updating usneme failed");
+      Get.back();
     }
   }
 
-  Future signInwithEmail(
-      {required String email, required String password}) async {
-    try {
-      final UserCredential signedUser = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      
+  Future signUpwithEmailandPassword() async {
+    final isValid = signUpformKey.currentState!.validate();
+    if (isValid == true) {
+      Get.dialog(const LoadingWidget());
+      try {
+        UserCredential results = await _auth.createUserWithEmailAndPassword(
+          email: signUpEmailController.text.trim(),
+          password: signUppasswordController.text.trim(),
+        );
+        User? user = results.user;
+        await _firebaseDB.createUsers(UserModelData(
+          email: signUpEmailController.text.trim(),
+          name: signUpUsernameController.text.trim(),
+          uid: user!.uid.toString(),
+        ));
+        await updateDisplayProfile(signUpUsernameController.text.trim());
+        Get.back();
+        welcomeSnackBar(signUpUsernameController.text.trim());
+        clearSignUpFields();
+      } on FirebaseException catch (e) {
+        Get.back();
+        final erroMessage = e.message;
+        errorSnackBar(erroMessage);
+      } catch (e) {
+        Get.back();
+        Get.snackbar("Somthing went wrong", "");
+      }
+    }
+  }
 
-      log("Logged in with EMAIL & PASSWORD");
-      await firebaseDB.getEmailMatchingData(email);
-      log("Matchin name {$nameInStorage}");
-      await GetStorageFunctions().setSignedUser("name", nameInStorage);
-    } on FirebaseException catch (e) {
-      log(e.message.toString());
-    } catch (e) {
-      log("Some other Excptions in sign in with EMAIL & PASSWORD $e");
+  Future signInwithEmail() async {
+    final isValid = signInFormKey.currentState!.validate();
+    if (isValid) {
+      Get.dialog(const LoadingWidget());
+      try {
+        UserCredential results = await _auth.signInWithEmailAndPassword(
+          email: signInEmailController.text.trim(),
+          password: signInPasswordController.text.trim(),
+        );
+        User? user = results.user;
+        clearSignInFields();
+        Get.back();
+        welcomeSnackBar(user);
+      } on FirebaseAuthException catch (e) {
+        final erroMessage = e.message;
+        Get.back();
+        errorSnackBar(erroMessage);
+      } catch (e) {
+        Get.back();
+        Get.snackbar("Somthing went wrong", "");
+      }
     }
   }
 
   Future signInWithGoogle() async {
+    Get.dialog(const LoadingWidget());
     try {
       final googleUser = await _googleSignIn.signIn();
       final GoogleSignInAuthentication googleSignInAuthentication =
@@ -84,20 +109,33 @@ class AuthenticationController extends GetxController {
         idToken: googleSignInAuthentication.idToken,
       );
       UserCredential results = await _auth.signInWithCredential(credential);
-      await FirebaseDB().createUsers(UserModelData(
+      await _firebaseDB.createUsers(UserModelData(
         email: googleUser.email,
         name: googleUser.displayName.toString(),
         uid: results.user!.uid,
       ));
-      
-      // await firebaseDB.getEmailMatchingData(
-      //   googleUser.email,
-      // );
-      // log("Matchin name {$nameInStorage}");
-      // await GetStorageFunctions().setSignedUser("name", nameInStorage);
-      log("Successfully Logged in with GOOGLE");
+      Get.back();
+      welcomeSnackBar(results.user);
+    } on FirebaseAuthException catch (e) {
+      Get.back();
+      final erroMessage = e.message;
+      errorSnackBar(erroMessage);
     } catch (e) {
-      log("$e Sign with google errooooooooor");
+      final message = "Somthing went wrong $e" "";
+      errorSnackBar(message);
     }
+    Get.back();
+  }
+
+  clearSignUpFields() {
+    signUpEmailController.clear();
+    signUppasswordController.clear();
+    passConfirmController.clear();
+    signUpUsernameController.clear();
+  }
+
+  clearSignInFields() {
+    signInEmailController.clear();
+    signInPasswordController.clear();
   }
 }

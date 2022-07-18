@@ -1,19 +1,26 @@
+import 'dart:developer';
+
+import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
+import 'package:get/route_manager.dart';
 
 class TextFormFieldCustom extends StatelessWidget {
-   TextFormFieldCustom({
+  TextFormFieldCustom({
     Key? key,
     required this.fieldController,
-    required this.hintTex,
-     this.maxLength =100,
+    required this.hintText,
+    this.maxLength = 100,
     this.keyboardType = TextInputType.name,
+    required this.screenName,
   }) : super(key: key);
 
+  final _authController = Get.put(AuthenticationController());
   final TextEditingController fieldController;
-  final String hintTex;
-   int maxLength;
+  final String hintText;
+  final int maxLength;
   final TextInputType keyboardType;
-  final String value ="";
+  final String screenName;
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +28,19 @@ class TextFormFieldCustom extends StatelessWidget {
       controller: fieldController,
       maxLength: maxLength,
       keyboardType: keyboardType,
-      obscureText: hintTex=="Password"||hintTex=="Confirm password"?true:false,
-      onChanged: (inputValue){
-        inputValue=value;
+      obscureText:
+          hintText == "Password" || hintText == "Confirm password" ? true : false,
+      validator: (value) {
+        if (screenName == "Signup") {
+          return validatorSignup(value);
+        } else {
+          return validatorSignIn(value);
+        }
       },
-      // validator: validator(),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
-          hintText: hintTex,
+        errorStyle: const TextStyle(color: Color.fromARGB(255, 235, 231, 3),fontWeight: FontWeight.bold),
+          hintText: hintText,
           fillColor: Colors.white,
           filled: true,
           hintStyle: TextStyle(
@@ -40,11 +53,43 @@ class TextFormFieldCustom extends StatelessWidget {
     );
   }
 
-  validator() {
-    if (hintTex == "Password" || hintTex == "Confirm password") {
-      value.length < 6 ? "Enter min 6 characters" : null;
-    }else {
-      return "This field required";
+  validatorSignup(value) {
+    final signUpEmail = _authController.signUpEmailController.text.trim();
+    final signUpPassword = _authController.signUppasswordController.text.trim();
+    final confirmPassword = _authController.passConfirmController.text.trim();
+   
+
+    if (hintText == "Password" || hintText == "Confirm password") {
+      if (value.length < 6) {
+        return "Password contain min 6 characters";
+      } else if (confirmPassword != signUpPassword) {
+        return "Password doesn't match";
+      }
+    }
+    if (hintText == "Username" && value.length < 4) {
+      return "Enter min 4 characters";
+    } 
+     bool emailValid = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(signUpEmail);
+    if (hintText=="Email" && !emailValid) {
+      return "Enter a valid email";
+    }
+  }
+
+  validatorSignIn(value) {
+    final signInPassword = _authController.signInPasswordController.text;
+    final signInEmail = _authController.signInEmailController.text;
+    bool emailValid = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(signInEmail);
+    if (hintText == "Password") {
+      log("THis is working");
+      if (signInPassword.isEmpty || value.length < 6) {
+        return "Password contain min 6 characters";
+      }
+    } else if (!emailValid) {
+      return "Enter a valid email";
     }
   }
 }

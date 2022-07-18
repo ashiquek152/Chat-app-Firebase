@@ -14,6 +14,7 @@ class SearchList extends StatelessWidget {
   final String currentUserName =
       FirebaseAuth.instance.currentUser!.displayName.toString();
   final firebaseDB = Get.put(FirebaseDB());
+  
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +52,7 @@ class SearchList extends StatelessWidget {
                         userName: name, currentUserName: currentUserName);
                     _homeController.searchController.text = "";
                     _homeController.searchResults!.docs.clear();
-                    _homeController.visibilty = false;
+                    // _homeController.visibilty = false;
                   },
                 ),
               ),

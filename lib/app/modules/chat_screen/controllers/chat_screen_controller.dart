@@ -2,28 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class ChatScreenController extends GetxController {
-  // final count = 0.obs;
 
-  ChatScreenController({this.chatRoomId});
-  final chatRoomId;
-
-  // @override
-  // void onReady() {
-  //   super.onReady();
-  // }
-
-  // @override
-  // void onClose() {
-  //   super.onClose();
-  // }
-
-  @override
-  void initState() {
-    // getMessagesIncontroller();
-    super.onInit();
-  }
-
-  // void increment() => count.value++;
   final currentUser = FirebaseAuth.instance.currentUser;
 
   final RxBool _showEmojiPicker = false.obs;

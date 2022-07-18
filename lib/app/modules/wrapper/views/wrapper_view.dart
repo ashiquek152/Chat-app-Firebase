@@ -8,26 +8,26 @@ import 'package:get/get.dart';
 import '../controllers/wrapper_controller.dart';
 
 class WrapperView extends GetView<WrapperController> {
-   WrapperView({Key? key}) : super(key: key);
-   final FirebaseAuth _firebaseAuth =FirebaseAuth.instance;
+  WrapperView({Key? key}) : super(key: key);
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       body: StreamBuilder<User?>(
-          stream: _firebaseAuth.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return const Center(child: Text("Something went wrong"));
-            } else if (snapshot.hasData) {
-              return    HomeView();
-            } else {
-              return AuthenticationView();
-            }
-          },
-        ),
+        stream: _firebaseAuth.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text("Something went wrong"));
+          } else if (snapshot.hasData) {
+            return HomeView();
+          } else {
+            return AuthenticationView();
+          }
+        },
+      ),
     );
   }
 }

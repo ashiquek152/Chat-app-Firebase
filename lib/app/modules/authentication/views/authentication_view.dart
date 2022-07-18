@@ -17,8 +17,10 @@ class AuthenticationView extends GetView<AuthenticationController> {
         builder: (controller) {
           if (authController.isSignin) {
             return LoginScreen();
+          }else{
+            return SignUpScreen();
           }
-          return SignUpScreen();
+          
         },
       ),
     );
