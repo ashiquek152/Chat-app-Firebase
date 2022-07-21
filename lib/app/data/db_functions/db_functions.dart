@@ -19,6 +19,14 @@ class FirebaseDB extends GetxController {
   String? existingChatRoom;
   String chatRoomId = "";
 
+//   checkExistingUser(String enteredName) async {
+//  try {
+//    firestoreCollectonUsers.where("name", isEqualTo: enteredName).snapshots();
+//  } catch (e) {
+   
+//  }
+//   }
+
   createUsers(UserModelData userModelData) async {
     try {
       await firestoreCollectonUsers
@@ -40,7 +48,7 @@ class FirebaseDB extends GetxController {
   }
 
   createChatConversations(
-      {required String userName, required String currentUserName}) async {
+      {required String userName, required String currentUserName, String? imageURL,String? email}) async {
     await checkExistingChatroomId(
         currentUserName: currentUserName, userName: userName);
     if (existingChatRoom!.isEmpty) {
@@ -55,7 +63,7 @@ class FirebaseDB extends GetxController {
     Get.to(
       curve: Curves.ease,
       duration: const Duration(seconds: 1),
-      () => ChatScreenView(userName: userName),
+      () => ChatScreenView(userName: userName,),
       arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
     );
   }
@@ -86,6 +94,21 @@ class FirebaseDB extends GetxController {
         .catchError((e) {
       log("Add Messages Error  ${e.toString()}");
     });
+  }
+  getChatConversations(
+      {required String userName, required String currentUserName}) async {
+    await checkExistingChatroomId(
+        currentUserName: currentUserName, userName: userName);
+    await getMessages();
+    _homeController.searchController.text = "";
+    _homeController.searchResult.clear();
+    getChatRooms(currentUserName: currentUserName);
+    Get.to(
+      // curve: Curves.ease,
+      // duration: const Duration(seconds: 1),
+      () => ChatScreenView(userName: userName,),
+      arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
+    );
   }
 
   checkExistingChatroomId(

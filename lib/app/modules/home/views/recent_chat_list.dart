@@ -19,14 +19,15 @@ class RecentChatList extends StatelessWidget {
       itemBuilder: (context, index) {
         final data = _firebaseDB.users[index]["users"];
         final name =
-            data[1].toString() != _authController.currentUser!.displayName
+            data[1].toString() != _authController.currentUser.value!.displayName
                 ? data[1].toString()
                 : data[0].toString();
         return GestureDetector(
           onTap: () {
-            _firebaseDB.createChatConversations(
+            _firebaseDB.getChatConversations(
                 userName: name,
-                currentUserName: _authController.currentUser!.displayName!);
+                currentUserName:
+                    _authController.currentUser.value!.displayName!);
           },
           child: Container(
             padding: const EdgeInsets.all(15),

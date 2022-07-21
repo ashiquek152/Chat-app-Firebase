@@ -18,127 +18,74 @@ class SearchList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-      itemCount: _homeController.searchResult.length,
-      itemBuilder: (context, index) {
-        final name = _homeController.searchResult[index]["name"];
-        final email = _homeController.searchResult[index]["email"]
-          ..toString().toUpperCase().capitalizeFirst!;
-        return name != currentUserName
-            ? GestureDetector(
-                onTap: () {
-                  firebaseDB.createChatConversations(
-                      userName: name, currentUserName: currentUserName);
-                  _homeController.searchController.text = "";
-                  _homeController.searchResult.clear();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
-                    color: black45,
-                    image: const DecorationImage(
-                      fit: BoxFit.cover,
-                      image: AssetImage("assets/BB.jpg"),
+    return GetBuilder<HomeController>(
+      builder: (context) {
+        return
+        _homeController.searchResult.isNotEmpty?GridView.builder(
+          shrinkWrap: true,
+          gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+          itemCount: _homeController.searchResult.length,
+          itemBuilder: (context, index) {
+            final name = _homeController.searchResult[index]["name"];
+            final email = _homeController.searchResult[index]["email"]
+              ..toString().toUpperCase().capitalizeFirst!;
+              final imageURL =_homeController.searchResult[index]["imageURL"];
+            return name != currentUserName
+                ? GestureDetector(
+                    onTap: () {
+                      firebaseDB.createChatConversations(imageURL: imageURL,
+                          userName: name, currentUserName: currentUserName,email: email);
+                      _homeController.searchController.text = "";
+                      _homeController.searchResult.clear();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                        color: black45,
+                        image:  DecorationImage(
+                          fit: BoxFit.cover,
+                          image:NetworkImage(imageURL),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextCustomized(
+                              text: name,
+                              textSize: 18,
+                              textColor: white,
+                              fontWeight: FontWeight.bold),
+                          sizedBox10,
+                          TextCustomized(
+                              text: email,
+                              textSize: 14,
+                              textColor: white,
+                              fontWeight: FontWeight.bold),
+                          sizedBox10,
+                        ],
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextCustomized(
-                          text: name,
+                  )
+                : Center(
+                    child: Column(
+                      children: [
+                        const LoadingWidget(),
+                        sizedBox10,
+                        TextCustomized(
+                          text: "No matches Found",
                           textSize: 18,
                           textColor: white,
-                          fontWeight: FontWeight.bold),
-                      sizedBox10,
-                      TextCustomized(
-                          text: email,
-                          textSize: 14,
-                          textColor: white,
-                          fontWeight: FontWeight.bold),
-                      sizedBox10,
-                    ],
-                  ),
-                ),
-              )
-            : Center(
-                child: Column(
-                  children: [
-                    const LoadingWidget(),
-                    sizedBox10,
-                    TextCustomized(
-                      text: "No matches Found",
-                      textSize: 18,
-                      textColor: white,
-                      fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-      },
+                  );
+          },
+        ):Container();
+      }
     );
-
-    // ListView.separated(
-    //   shrinkWrap: true,
-    //   physics: const NeverScrollableScrollPhysics(),
-    //   itemCount: _homeController.searchResult.length,
-    //   itemBuilder: (context, index) {
-    //     final name = _homeController.searchResult[index]["name"];
-    //     final email = _homeController.searchResult[index]["email"]
-    //       ..toString().toUpperCase().capitalizeFirst!;
-    //     return name != currentUserName
-    //         ? GestureDetector(
-    //             onTap: () {
-    //               firebaseDB.createChatConversations(
-    //                   userName: name, currentUserName: currentUserName);
-    //               _homeController.searchController.text = "";
-    //               _homeController.searchResult.clear();
-    //             },
-    //             child: Container(
-    //               padding: const EdgeInsets.all(15),
-    //               height: 70,
-    //               decoration: BoxDecoration(
-    //                   borderRadius: BorderRadius.circular(25), color: black45),
-    //               child: Column(
-    //                 mainAxisAlignment: MainAxisAlignment.center,
-    //                 crossAxisAlignment: CrossAxisAlignment.start,
-    //                 children: [
-    //                   TextCustomized(
-    //                       text: name,
-    //                       textSize: 18,
-    //                       textColor: white,
-    //                       fontWeight: FontWeight.bold),
-    //                   TextCustomized(
-    //                       text: email,
-    //                       textSize: 18,
-    //                       textColor: white,
-    //                       fontWeight: FontWeight.bold),
-    //                 ],
-    //               ),
-    //             ),
-    //           )
-    //         : Center(
-    //             child: Column(
-    //               children: [
-    //                 const LoadingWidget(),
-    //                 sizedBox10,
-    //                 TextCustomized(
-    //                   text: "No matches Found",
-    //                   textSize: 18,
-    //                   textColor: white,
-    //                   fontWeight: FontWeight.bold,
-    //                 ),
-    //               ],
-    //             ),
-    //           );
-    //   },
-    //   separatorBuilder: (context, index) {
-    //     return sizedBox10;
-    //   },
-    // );
   }
 }

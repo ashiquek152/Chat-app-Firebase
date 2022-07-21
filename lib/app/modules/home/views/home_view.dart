@@ -2,6 +2,7 @@ import 'package:chatapp_firebase/app/data/common_widgets/colors.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/constants.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/text_widget_customized.dart';
 import 'package:chatapp_firebase/app/data/db_functions/db_functions.dart';
+import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
 import 'package:chatapp_firebase/app/modules/home/views/profile_dialogue.dart';
 import 'package:chatapp_firebase/app/modules/home/views/recent_chat_list.dart';
 import 'package:chatapp_firebase/app/modules/home/views/search_list.dart';
@@ -16,10 +17,16 @@ class HomeView extends GetView<HomeController> {
   HomeView({Key? key}) : super(key: key);
 
   final homeController = Get.put(HomeController());
+  final _firebaseDB = Get.put(FirebaseDB());
+  final _authController = Get.put(AuthenticationController());
 
   @override
   Widget build(BuildContext context) {
+    _firebaseDB.getChatRooms(
+        currentUserName:
+            _authController.currentUser.value?.displayName??'');
     return Stack(
+      fit: StackFit.expand,
       children: [
         Image.asset(
           "assets/new_bg.jpg",
@@ -56,13 +63,7 @@ class HomeView extends GetView<HomeController> {
                     },
                   ),
                   sizedBox10,
-                  GetBuilder<HomeController>(
-                    builder: (controller) {
-                      return Visibility(
-                          visible: homeController.visibilty,
-                          child: SearchList());
-                    },
-                  ),
+                  SearchList(),
                   sizedBox10,
                   GetBuilder<FirebaseDB>(
                     builder: (controller2) {

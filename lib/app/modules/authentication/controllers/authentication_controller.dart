@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:chatapp_firebase/app/data/common_widgets/loading_widget.dart';
 import 'package:chatapp_firebase/app/data/common_widgets/snackbars.dart';
 import 'package:chatapp_firebase/app/data/db_functions/db_functions.dart';
 import 'package:chatapp_firebase/app/data/model/user_model_class.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
 
 class AuthenticationController extends GetxController {
   bool isSignin = true;
@@ -25,43 +30,61 @@ class AuthenticationController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseDB _firebaseDB = FirebaseDB();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  User? currentUser = FirebaseAuth.instance.currentUser;
+  Rx<User?> currentUser = FirebaseAuth.instance.currentUser.obs;
+
+  File? fileImage;
+  String imagePath = "";
+  UploadTask? task;
+  String imageURL = "";
+  String stringIMG = "";
 
   toggleScreens() {
     isSignin = !isSignin;
     clearSignInFields();
     clearSignUpFields();
+    stringIMG = "";
     update();
   }
 
+  ///*** UPDATE DISPLAYPROFILE Name & Image****/
+
   Future updateDisplayProfile(name) async {
-      Get.dialog(const LoadingWidget());
     try {
-      await _auth.currentUser!.updateDisplayName(name);
+      _auth.currentUser!.updateDisplayName(name);
+      _auth.currentUser!.updatePhotoURL(imageURL);
       log("Display name updated");
     } catch (e) {
-      errorSnackBar("Updating usneme failed");
-      Get.back();
+      errorSnackBar("Something went wrong");
     }
   }
 
+  ///*******SIGNUP WITH EMAIL AND PASSWORD*********//
+
   Future signUpwithEmailandPassword() async {
-    final isValid = signUpformKey.currentState!.validate();
+    log(imageURL.toString());
+    final isValid = signUpformKey.currentState!.validate() && imageURL != "";
+    if (imageURL == "") {
+      errorSnackBar("Please pick an image");
+      return;
+    }
     if (isValid == true) {
-      Get.dialog(const LoadingWidget());
+      Get.dialog(const LoadingWidget(duration: 12));
       try {
         UserCredential results = await _auth.createUserWithEmailAndPassword(
           email: signUpEmailController.text.trim(),
           password: signUppasswordController.text.trim(),
         );
-        User user = results.user!;
+        User? user = results.user;
+        
         await _firebaseDB.createUsers(UserModelData(
           email: signUpEmailController.text.trim(),
           name: signUpUsernameController.text.trim(),
-          uid: user.uid.toString(),
+          uid: user!.uid.toString(),
+          imageURL: imageURL,
         ));
-        await updateDisplayProfile(signUpUsernameController.text.trim());
-        
+      await updateDisplayProfile(signUpUsernameController.text.trim());
+        // currentUser.value = user;
+
         Get.back();
         welcomeSnackBar(signUpUsernameController.text.trim());
         clearSignUpFields();
@@ -71,10 +94,13 @@ class AuthenticationController extends GetxController {
         errorSnackBar(erroMessage);
       } catch (e) {
         Get.back();
-        Get.snackbar("Somthing went wrong", "");
+        log(e.toString());
+        errorSnackBar(e.toString());
       }
     }
   }
+
+  ///******LOGIN REGISTERD USER****/////
 
   Future signInwithEmail() async {
     final isValid = signInFormKey.currentState!.validate();
@@ -86,9 +112,10 @@ class AuthenticationController extends GetxController {
           password: signInPasswordController.text.trim(),
         );
         User? user = results.user;
+        currentUser.value = user;
         clearSignInFields();
         Get.back();
-        welcomeSnackBar(user);
+        welcomeSnackBar(user!.displayName);
       } on FirebaseAuthException catch (e) {
         final erroMessage = e.message;
         Get.back();
@@ -99,6 +126,8 @@ class AuthenticationController extends GetxController {
       }
     }
   }
+
+  ///****SIGN IN WITH GOOOGLE *****///
 
   Future signInWithGoogle() async {
     Get.dialog(const LoadingWidget());
@@ -111,22 +140,83 @@ class AuthenticationController extends GetxController {
         idToken: googleSignInAuthentication.idToken,
       );
       UserCredential results = await _auth.signInWithCredential(credential);
+      if (currentUser.value == null) {
+        await currentUser.value!.reload();
+      }
       await _firebaseDB.createUsers(UserModelData(
         email: googleUser.email,
         name: googleUser.displayName.toString(),
         uid: results.user!.uid,
+        imageURL: results.user!.photoURL!,
       ));
+      // currentUser.value = results.user;
       Get.back();
-      welcomeSnackBar(results.user);
+      welcomeSnackBar(results.user!.displayName);
     } on FirebaseAuthException catch (e) {
       Get.back();
       final erroMessage = e.message;
       errorSnackBar(erroMessage);
     } catch (e) {
-      final message = "Somthing went wrong $e" "";
+      final message = "Somthing went wrong $e";
       errorSnackBar(message);
     }
     Get.back();
+  }
+
+  ///**********PICK IMAGE FROM GALLERY************////
+
+  pickGalleryImage() async {
+    final galleryImage =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (galleryImage == null) {
+      return;
+    } else {
+      fileImage = File(galleryImage.path);
+      imagePath = galleryImage.path.toString();
+      final bytes = File(galleryImage.path).readAsBytesSync();
+      stringIMG = base64Encode(bytes);
+      update();
+    }
+  }
+
+  ///**********PICK IMAGE FROM CAMERA************////
+
+  pickCameraImage() async {
+    final galleryImage =
+        await ImagePicker().pickImage(source: ImageSource.camera);
+    if (galleryImage == null) {
+      return;
+    } else {
+      fileImage = File(galleryImage.path);
+      final bytes = File(galleryImage.path).readAsBytesSync();
+      stringIMG = base64Encode(bytes);
+      update();
+      uploadImage();
+    }
+  }
+
+  ///******* UPLOAD TO FIREBASE STORAGE*///
+
+  uploadImage() async {
+    if (fileImage == null) return;
+    final fileName = basename(fileImage!.path);
+    final destination = "ProfilePics/Pic_$fileName";
+    task = uploadImageToFirestorage(destination, fileImage!);
+    if (task == null) {
+      return;
+    }
+    final snapshot = await task!.whenComplete(() {});
+    imageURL = await snapshot.ref.getDownloadURL();
+  }
+
+  UploadTask? uploadImageToFirestorage(String destination, File file) {
+    try {
+      final ref = FirebaseStorage.instance.ref(destination);
+      return ref.putFile(file);
+    } on FirebaseException {
+      log("Upload to firestore ERROOOOOR");
+      return null;
+    }
   }
 
   clearSignUpFields() {
