@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:chatapp_firebase/app/data/common_widgets/colors.dart';
 import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
@@ -13,6 +14,7 @@ class TextFormFieldCustom extends StatelessWidget {
     this.maxLength = 100,
     this.keyboardType = TextInputType.name,
     required this.screenName,
+    required this.suffixIcon,
   }) : super(key: key);
 
   final _authController = Get.put(AuthenticationController());
@@ -21,6 +23,7 @@ class TextFormFieldCustom extends StatelessWidget {
   final int maxLength;
   final TextInputType keyboardType;
   final String screenName;
+  final IconData suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +31,9 @@ class TextFormFieldCustom extends StatelessWidget {
       controller: fieldController,
       maxLength: maxLength,
       keyboardType: keyboardType,
-      obscureText:
-          hintText == "Password" || hintText == "Confirm password" ? true : false,
+      obscureText: hintText == "Password" || hintText == "Confirm password"
+          ? true
+          : false,
       validator: (value) {
         if (screenName == "Signup") {
           return validatorSignup(value);
@@ -39,17 +43,32 @@ class TextFormFieldCustom extends StatelessWidget {
       },
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
-        errorStyle: const TextStyle(color: Color.fromARGB(255, 235, 231, 3),fontWeight: FontWeight.bold),
-          hintText: hintText,
-          fillColor: Colors.white,
-          filled: true,
-          hintStyle: TextStyle(
-            color: Colors.blue.withOpacity(0.5),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none,
-          )),
+        errorStyle:  TextStyle(
+            color:white.withOpacity(0.8),
+            fontWeight: FontWeight.bold),
+        hintText: hintText,
+        fillColor: black45,
+        filled: true,
+        prefixIcon: Icon(suffixIcon),
+        prefixIconColor: buttonColor,
+        hintStyle: TextStyle(
+          color: white.withOpacity(0.5),
+        ),
+        enabledBorder: textfieldBorderDecoration(),
+        focusedBorder: textfieldBorderDecoration(),
+        errorBorder: textfieldBorderDecoration(color: red),
+        focusedErrorBorder: textfieldBorderDecoration(color: red),
+      ),
+    );
+  }
+
+  OutlineInputBorder textfieldBorderDecoration({color = buttonColor}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(25.0),
+      borderSide: const BorderSide(
+        color: buttonColor,
+        width: 2.0,
+      ),
     );
   }
 
@@ -57,7 +76,6 @@ class TextFormFieldCustom extends StatelessWidget {
     final signUpEmail = _authController.signUpEmailController.text.trim();
     final signUpPassword = _authController.signUppasswordController.text.trim();
     final confirmPassword = _authController.passConfirmController.text.trim();
-   
 
     if (hintText == "Password" || hintText == "Confirm password") {
       if (value.length < 6) {
@@ -68,12 +86,12 @@ class TextFormFieldCustom extends StatelessWidget {
     }
     if (hintText == "Username" && value.length < 4) {
       return "Enter min 4 characters";
-    } 
-     bool emailValid = RegExp(
+    }
+    bool emailValid = RegExp(
             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(signUpEmail);
-    if (hintText=="Email" && !emailValid) {
-      return "Enter a valid email";
+    if (hintText == "Email" && !emailValid) {
+      return "Enter a valid email address";
     }
   }
 
@@ -89,7 +107,7 @@ class TextFormFieldCustom extends StatelessWidget {
         return "Password contain min 6 characters";
       }
     } else if (!emailValid) {
-      return "Enter a valid email";
+      return "Enter a valid email address";
     }
   }
 }

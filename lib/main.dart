@@ -18,14 +18,14 @@ void main() async {
   } else if (connectivityResult == ConnectivityResult.wifi) {
     log("Connected to wifi");
     // I am connected to a wifi network.
-  }else{
-  log("Not connected"); 
+  } else {
+    log("Not connected");
   }
-  runApp(
-    GetMaterialApp(
-      title: "Application",
-      initialRoute: AppPages.INITIAL,
-      getPages: AppPages.routes,
-    ),
-  );
+
+  runApp(GetMaterialApp(
+    title: "Application",
+    initialRoute: AppPages.INITIAL,
+    getPages: AppPages.routes,
+    theme: ThemeData.dark(),
+  ));
 }

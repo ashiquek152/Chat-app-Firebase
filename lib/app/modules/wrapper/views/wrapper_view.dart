@@ -1,3 +1,4 @@
+
 import 'package:chatapp_firebase/app/modules/authentication/controllers/authentication_controller.dart';
 import 'package:chatapp_firebase/app/modules/authentication/views/authentication_view.dart';
 import 'package:chatapp_firebase/app/modules/home/views/home_view.dart';
@@ -23,7 +24,8 @@ class WrapperView extends GetView<WrapperController> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong"));
-          } else if (snapshot.data!=null) {
+          } else if (snapshot.hasData) {
+            // reloadCurrentUser(snapshot);
             return HomeView();
           } else {
             return AuthenticationView();

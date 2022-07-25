@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:chatapp_firebase/app/data/model/user_model_class.dart';
+import 'package:chatapp_firebase/app/modules/all_users/controllers/all_users_controller.dart';
+import 'package:chatapp_firebase/app/modules/chat_screen/controllers/chat_screen_controller.dart';
 import 'package:chatapp_firebase/app/modules/chat_screen/views/chat_screen_view.dart';
 import 'package:chatapp_firebase/app/modules/home/controllers/home_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,23 +11,16 @@ import 'package:get/get.dart';
 
 class FirebaseDB extends GetxController {
   final fireStoreInstance = FirebaseFirestore.instance;
-  final chatFieldController = TextEditingController();
   final _homeController = Get.put(HomeController());
+  final _allUsersControler = Get.put(AllUsersController());
+  final _chatScreenController = Get.put(ChatScreenController());
 
   final CollectionReference firestoreCollectonUsers =
       FirebaseFirestore.instance.collection("users");
   final CollectionReference firestoreCollectonChatRoom =
       FirebaseFirestore.instance.collection("ChatRoom");
   String? existingChatRoom;
-  String chatRoomId = "";
-
-//   checkExistingUser(String enteredName) async {
-//  try {
-//    firestoreCollectonUsers.where("name", isEqualTo: enteredName).snapshots();
-//  } catch (e) {
-   
-//  }
-//   }
+  String chatRoomID = "";
 
   createUsers(UserModelData userModelData) async {
     try {
@@ -40,35 +35,48 @@ class FirebaseDB extends GetxController {
     }
   }
 
-  createChatRoom(String chatRoomID, chatRoomMap) async {
-    return await firestoreCollectonChatRoom
+  createChatRoom({required String chatRoomID, required chatRoomMap}) async {
+    return await FirebaseFirestore.instance
+        .collection("ChatRoom")
         .doc(chatRoomID)
         .set(chatRoomMap)
         .catchError((e) => log("Creating Chatroom Error ${e.toString()}"));
   }
 
   createChatConversations(
-      {required String userName, required String currentUserName, String? imageURL,String? email}) async {
-    await checkExistingChatroomId(
-        currentUserName: currentUserName, userName: userName);
-    if (existingChatRoom!.isEmpty) {
-      chatRoomId = createChatRoomId(userName, currentUserName);
-      List<String> users = [userName, currentUserName];
-      Map<String, dynamic> chatRoomMap = {"users": users, "roomId": chatRoomId};
-      await createChatRoom(chatRoomId, chatRoomMap);
-    }
-    await getMessages();
-    _homeController.searchController.text = "";
+      {required String userName,
+      required String currentUserName,
+      }) async {
+    try {
+      log("working create conversations");
+      await checkExistingChatroomID(
+          currentUserName: currentUserName, userName: userName);
+      if (existingChatRoom=="") {
 
-    Get.to(
-      curve: Curves.ease,
-      duration: const Duration(seconds: 1),
-      () => ChatScreenView(userName: userName,),
-      arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
-    );
+        chatRoomID = createChatRoomID(userName, currentUserName);
+        log(chatRoomID);
+
+        List<String> users = [userName, currentUserName];
+        Map<String, dynamic> chatRoomMap = {
+          "users": users,
+          "roomId": chatRoomID
+        };
+       await createChatRoom(chatRoomID: chatRoomID, chatRoomMap: chatRoomMap);
+      }
+      _chatScreenController.getMessages(
+          existingChatRoom == "" ? chatRoomID : existingChatRoom!);
+      Get.to(
+          curve: Curves.ease,
+          duration: const Duration(seconds: 1),
+          () => ChatScreenView(),
+          arguments:
+              existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomID);
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
-  createChatRoomId(String a, String b) {
+  createChatRoomID(String a, String b) {
     if (a.substring(0, 1).codeUnitAt(0) > b.substring(0, 1).codeUnitAt(0)) {
       return "${b}_$a";
     } else {
@@ -76,7 +84,7 @@ class FirebaseDB extends GetxController {
     }
   }
 
-  createChatRoomId2(String a, String b) {
+  createChatRoomID2(String a, String b) {
     if (a.substring(0, 1).codeUnitAt(0) > b.substring(0, 1).codeUnitAt(0)) {
       return "${a}_$b";
     } else {
@@ -84,95 +92,50 @@ class FirebaseDB extends GetxController {
     }
   }
 
-  addMessages(chatRoomid, messagesMap) async {
-    final time = DateTime.now();
-    await firestoreCollectonChatRoom
-        .doc(chatRoomid)
-        .collection("chats")
-        .doc(time.toString())
-        .set(messagesMap)
-        .catchError((e) {
-      log("Add Messages Error  ${e.toString()}");
-    });
-  }
   getChatConversations(
-      {required String userName, required String currentUserName}) async {
-    await checkExistingChatroomId(
+      {required String userName,
+      required String currentUserName,
+      required String chatRoomID}) async {
+    await checkExistingChatroomID(
         currentUserName: currentUserName, userName: userName);
-    await getMessages();
-    _homeController.searchController.text = "";
-    _homeController.searchResult.clear();
-    getChatRooms(currentUserName: currentUserName);
+    await _chatScreenController.getMessages(chatRoomID);
+    _allUsersControler.searchController.clear();
+    _allUsersControler.searchResult.clear();
+    _homeController.getChatRooms(currentUserName: currentUserName);
     Get.to(
       // curve: Curves.ease,
       // duration: const Duration(seconds: 1),
-      () => ChatScreenView(userName: userName,),
-      arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId,
+      () => ChatScreenView(),
+      arguments: existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomID,
     );
   }
 
-  checkExistingChatroomId(
+  checkExistingChatroomID(
       {required String currentUserName, required String userName}) async {
     existingChatRoom = "";
-    final roomId1 = createChatRoomId(currentUserName, userName);
-    final roomId2 = createChatRoomId2(userName, currentUserName);
+    final roomId1 = createChatRoomID(currentUserName, userName);
+    final roomId2 = createChatRoomID2(userName, currentUserName);
 
-    final search = await firestoreCollectonChatRoom.doc(roomId1).get();
+    final search = await FirebaseFirestore.instance
+        .collection("ChatRoom")
+        .doc(roomId1)
+        .get();
+    print(search.data());
 
     if (search.data() != null) {
       existingChatRoom = roomId1;
       return;
     } else {
-      final search2 = await firestoreCollectonChatRoom.doc(roomId2).get();
+      final search2 = await FirebaseFirestore.instance
+          .collection("ChatRoom")
+          .doc(roomId2)
+          .get();
+      print(search2.data());
       if (search2.data() != null) {
         existingChatRoom = roomId2;
+        print(existingChatRoom);
         return;
       }
     }
-  }
-
-  final List messages = [];
-  getMessages() {
-    firestoreCollectonChatRoom
-        .doc(existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomId)
-        .collection("chats")
-        .where("messege")
-        .snapshots()
-        .forEach((element) {
-      messages.clear();
-      element.docs.map((DocumentSnapshot document) {
-        Map a = document.data() as Map<String, dynamic>;
-        messages.add(a);
-      }).toList();
-      update();
-    });
-  }
-
-  sendMessages(
-      {required String currentUserName, required String chatRoomID}) async {
-    if (chatFieldController.text.isNotEmpty) {
-      Map<String, String> messagesMap = {
-        "messege": chatFieldController.text,
-        "sendBy": currentUserName.toString(),
-      };
-      addMessages(existingChatRoom!.isNotEmpty ? existingChatRoom : chatRoomID,
-          messagesMap);
-      chatFieldController.clear();
-    }
-  }
-
-  List users = [];
-  getChatRooms({required String currentUserName}) async {
-    users.clear();
-    await firestoreCollectonChatRoom
-        .where("users", arrayContains: currentUserName)
-        .get()
-        .then((value) {
-      value.docs.map((DocumentSnapshot document) {
-        Map a = document.data() as Map<String, dynamic>;
-        users.add(a);
-      }).toList();
-      update();
-    });
   }
 }

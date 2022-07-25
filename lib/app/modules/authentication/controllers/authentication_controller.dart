@@ -61,6 +61,9 @@ class AuthenticationController extends GetxController {
   ///*******SIGNUP WITH EMAIL AND PASSWORD*********//
 
   Future signUpwithEmailandPassword() async {
+    Get.dialog(const LoadingWidget());
+
+    await uploadImage();
     log(imageURL.toString());
     final isValid = signUpformKey.currentState!.validate() && imageURL != "";
     if (imageURL == "") {
@@ -68,22 +71,20 @@ class AuthenticationController extends GetxController {
       return;
     }
     if (isValid == true) {
-      Get.dialog(const LoadingWidget(duration: 12));
       try {
         UserCredential results = await _auth.createUserWithEmailAndPassword(
           email: signUpEmailController.text.trim(),
           password: signUppasswordController.text.trim(),
         );
         User? user = results.user;
-        
+
         await _firebaseDB.createUsers(UserModelData(
           email: signUpEmailController.text.trim(),
           name: signUpUsernameController.text.trim(),
           uid: user!.uid.toString(),
           imageURL: imageURL,
         ));
-      await updateDisplayProfile(signUpUsernameController.text.trim());
-        // currentUser.value = user;
+        await updateDisplayProfile(signUpUsernameController.text.trim());
 
         Get.back();
         welcomeSnackBar(signUpUsernameController.text.trim());
@@ -118,13 +119,14 @@ class AuthenticationController extends GetxController {
         welcomeSnackBar(user!.displayName);
       } on FirebaseAuthException catch (e) {
         final erroMessage = e.message;
-        Get.back();
+        // Get.back();
         errorSnackBar(erroMessage);
       } catch (e) {
-        Get.back();
+        // Get.back();
         Get.snackbar("Somthing went wrong", "");
       }
     }
+    // Get.back();
   }
 
   ///****SIGN IN WITH GOOOGLE *****///
@@ -149,7 +151,6 @@ class AuthenticationController extends GetxController {
         uid: results.user!.uid,
         imageURL: results.user!.photoURL!,
       ));
-      // currentUser.value = results.user;
       Get.back();
       welcomeSnackBar(results.user!.displayName);
     } on FirebaseAuthException catch (e) {
@@ -191,7 +192,6 @@ class AuthenticationController extends GetxController {
       final bytes = File(galleryImage.path).readAsBytesSync();
       stringIMG = base64Encode(bytes);
       update();
-      uploadImage();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-Color buttonColor = const Color.fromARGB(255, 117, 243, 33);
+const Color buttonColor =  Color.fromARGB(255, 0, 195, 255);
+Color lightGreen =const Color.fromARGB(255, 117, 243, 33);
 const white =Colors.white;
 const transparent = Colors.transparent;
 const black45 = Colors.black45;
