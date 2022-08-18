@@ -1,16 +1,18 @@
-# chatapp_firebase
+# ChatBox_With_Firebase
 
-A new Flutter project.
+#ChatBox a chatting app made with flutter with the help of Firebase
 
-## Getting Started
+Packages used :-
 
-This project is a starting point for a Flutter application.
+- Firebase_cloud
+- Firebase_core
+- Firebase_storage
+- Image_Picker
+- Emoji_picker
+- Animations
 
-A few resources to get you started if this is your first Flutter project:
+State & route management
+- GetX
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Architecture
+- MVC pattern using GetCLI
